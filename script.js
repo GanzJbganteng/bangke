@@ -1,80 +1,75 @@
+/* ===== elem global ===== */
 const sidebar = document.querySelector(".sidebar");
 const bugList = document.getElementById("bugList");
 
-bugData.forEach((b, i) => {
-  const li = document.createElement("li");
-  const title = document.createElement("strong");
-  title.textContent = b.title;
+/* ===== render bug (safe, no HTML injection) ===== */
+bugData.forEach((b,i)=>{
+  const li=document.createElement("li");
 
-  const pre = document.createElement("pre");
-  pre.className = "bug-code";
-  pre.id = "bug" + i;
-  pre.textContent = atob(b.funcB64);
+  const title=document.createElement("strong");
+  title.textContent=b.title;
 
-  const btn = document.createElement("button");
-  btn.className = "copyBtn";
-  btn.dataset.id = pre.id;
-  btn.textContent = "Copy";
+  const pre=document.createElement("pre");
+  pre.className="bug-code"; pre.id="bug"+i;
+  pre.textContent=atob(b.funcB64);    // decode → tampil
 
-  li.append(title, pre, btn);
-  bugList.append(li);
+  const btn=document.createElement("button");
+  btn.className="copyBtn"; btn.dataset.id=pre.id; btn.textContent="Copy";
+
+  li.append(title,pre,btn); bugList.append(li);
 });
 
-bugList.addEventListener("click", (e) => {
-  if (!e.target.classList.contains("copyBtn")) return;
-  const code = document.getElementById(e.target.dataset.id).innerText;
+/* copy handler */
+bugList.addEventListener("click",e=>{
+  if(!e.target.classList.contains("copyBtn"))return;
+  const code=document.getElementById(e.target.dataset.id).innerText;
   navigator.clipboard.writeText(code)
-    .then(() => toast("Copied!"))
-    .catch(() => toast("Copy failed", true));
+    .then(()=>toast("Copied!")).catch(()=>toast("Copy failed",true));
 });
 
-document.querySelectorAll(".sidebar a").forEach(link => {
-  link.addEventListener("click", (e) => {
+/* page navigation */
+document.querySelectorAll(".sidebar a").forEach(link=>{
+  link.addEventListener("click",e=>{
     e.preventDefault();
-    document.querySelectorAll(".sidebar a").forEach(l => l.classList.remove("active"));
+    document.querySelectorAll(".sidebar a").forEach(l=>l.classList.remove("active"));
     link.classList.add("active");
-    const page = link.dataset.page;
-    document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
+
+    const page=link.dataset.page;
+    document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
     document.getElementById(`${page}Section`).classList.remove("hidden");
-    document.getElementById("pageTitle").textContent = page.charAt(0).toUpperCase() + page.slice(1);
-    if (window.innerWidth <= 640) sidebar.classList.remove("open");
+    document.getElementById("pageTitle").textContent=
+      page.charAt(0).toUpperCase()+page.slice(1);
+
+    if(window.innerWidth<=640) sidebar.classList.remove("open"); // tutup di mobile
   });
 });
 
-const themeBtn = document.getElementById("themeToggle");
-themeBtn.addEventListener("click", () => {
+/* theme toggle */
+document.getElementById("themeToggle").addEventListener("click",()=>{
   document.body.classList.toggle("light");
-  toast(document.body.classList.contains("light") ? "Light mode" : "Dark mode");
+  toast(document.body.classList.contains("light")?"Light mode":"Dark mode");
 });
 
-const sendBtn = document.getElementById("sendBtn");
-const input = document.getElementById("textInput");
-const output = document.getElementById("output");
-sendBtn?.addEventListener("click", async () => {
-  const t = input.value.trim();
-  if (!t) return toast("Input kosong!", true);
+/* demo fetch */
+document.getElementById("sendBtn")?.addEventListener("click",async()=>{
+  const t=document.getElementById("textInput").value.trim();
+  if(!t)return toast("Input kosong!",true);
   toast("Sending…");
-  try {
-    const res = await fetch("https://api.example.com/ai?text=" + encodeURIComponent(t));
-    output.textContent = JSON.stringify(await res.json(), null, 2);
-  } catch (err) {
-    output.textContent = "// ERROR: " + err.message;
-    toast("Fetch gagal", true);
+  try{
+    const res=await fetch("https://api.example.com/ai?text="+encodeURIComponent(t));
+    document.getElementById("output").textContent=
+      JSON.stringify(await res.json(),null,2);
+  }catch(err){
+    document.getElementById("output").textContent="// ERROR: "+err.message;
+    toast("Fetch gagal",true);
   }
 });
 
-function toast(msg, err = false) {
-  const c = document.getElementById("toastContainer");
-  const d = document.createElement("div");
-  d.className = "toast";
-  if (err) d.style.borderLeftColor = "red";
-  d.textContent = msg;
-  c.appendChild(d);
-  setTimeout(() => {
-    d.style.opacity = 0;
-    setTimeout(() => c.removeChild(d), 500);
-  }, 3000);
+/* toast & hamburger */
+function toast(msg,err=false){
+  const wrap=document.getElementById("toastContainer");
+  const d=document.createElement("div");
+  d.className="toast"; if(err)d.style.borderLeftColor="red"; d.textContent=msg; wrap.append(d);
+  setTimeout(()=>{d.style.opacity=0;setTimeout(()=>wrap.removeChild(d),500)},3000);
 }
-
-const menuBtn = document.getElementById("menuBtn");
-menuBtn.addEventListener("click", () => sidebar.classList.toggle("open"));
+document.getElementById("menuBtn").addEventListener("click",()=>sidebar.classList.toggle("open"));

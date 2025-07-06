@@ -1,8 +1,10 @@
-// BUG DATA (base64 encoded funcs)
-/* === 1. Render Bug List (kode disembunyikan) === */
-const bugList = document.getElementById("bugList");
+/* === 0. ambil elemen global lebih dulu === */
+const sidebar = document.querySelector(".sidebar");      // <— pindah ke atas
+const bugList  = document.getElementById("bugList");
+
+/* === 1. render bug list (decode langsung) === */
 bugData.forEach((b, i) => {
-  const code = atob(b.funcB64); // ← decode langsung
+  const code = atob(b.funcB64);                   // decode Base-64
   bugList.insertAdjacentHTML(
     "beforeend",
     `<li>
@@ -13,69 +15,72 @@ bugData.forEach((b, i) => {
   );
 });
 
+/* copy handler */
 bugList.addEventListener("click", (e) => {
   if (!e.target.classList.contains("copyBtn")) return;
-  const id = e.target.dataset.id;
+  const id   = e.target.dataset.id;
   const code = document.getElementById(id).innerText;
   navigator.clipboard.writeText(code)
     .then(() => toast("Copied!"))
     .catch(() => toast("Copy failed", true));
 });
 
-/* === 2. Copy Handler (decode Base-64) === */
-bugList.addEventListener("click", e => {
-  if (!e.target.classList.contains("copyBtn")) return;
-  const code = atob(bugData[e.target.dataset.i].funcB64);   // ← decode
-  navigator.clipboard.writeText(code)
-    .then(()=>toast("Copied!"))
-    .catch(()=>toast("Copy failed",true));
-});
-
-/* === 3. Page Navigation === */
-document.querySelectorAll(".sidebar a").forEach(link=>{
-  link.addEventListener("click",e=>{
+/* === 2. page navigation === */
+document.querySelectorAll(".sidebar a").forEach(link => {
+  link.addEventListener("click", (e) => {
     e.preventDefault();
-    document.querySelectorAll(".sidebar a").forEach(l=>l.classList.remove("active"));
+
+    // aktifkan link
+    document.querySelectorAll(".sidebar a").forEach(l => l.classList.remove("active"));
     link.classList.add("active");
+
+    // tampilkan page
     const page = link.dataset.page;
-    document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+    document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
     document.getElementById(`${page}Section`).classList.remove("hidden");
     document.getElementById("pageTitle").textContent =
-      page.charAt(0).toUpperCase()+page.slice(1);
-    if(window.innerWidth<=640) sidebar.classList.remove("open");
+      page.charAt(0).toUpperCase() + page.slice(1);
+
+    /* ⏬ tutup sidebar jika lebar layar kecil */
+    if (window.innerWidth <= 640) sidebar.classList.remove("open");
   });
 });
 
-/* === 4. Theme Toggle === */
-const themeBtn=document.getElementById("themeToggle");
-themeBtn.addEventListener("click",()=>{
+/* === 3. theme toggle === */
+const themeBtn = document.getElementById("themeToggle");
+themeBtn.addEventListener("click", () => {
   document.body.classList.toggle("light");
-  toast(document.body.classList.contains("light")?"Light mode":"Dark mode");
+  toast(document.body.classList.contains("light") ? "Light mode" : "Dark mode");
 });
 
-/* === 5. Demo Fetch === */
-const sendBtn=document.getElementById("sendBtn");
-const input=document.getElementById("textInput");
-const output=document.getElementById("output");
-sendBtn?.addEventListener("click",async()=>{
-  const t=input.value.trim(); if(!t) return toast("Input kosong!",true);
+/* === 4. demo fetch === */
+const sendBtn = document.getElementById("sendBtn");
+const input   = document.getElementById("textInput");
+const output  = document.getElementById("output");
+sendBtn?.addEventListener("click", async () => {
+  const t = input.value.trim();
+  if (!t) return toast("Input kosong!", true);
+
   toast("Sending…");
-  try{
-    const res=await fetch("https://api.example.com/ai?text="+encodeURIComponent(t));
-    output.textContent=JSON.stringify(await res.json(),null,2);
-  }catch(err){
-    output.textContent="// ERROR: "+err.message;
-    toast("Fetch gagal",true);
+  try {
+    const res  = await fetch("https://api.example.com/ai?text=" + encodeURIComponent(t));
+    output.textContent = JSON.stringify(await res.json(), null, 2);
+  } catch (err) {
+    output.textContent = "// ERROR: " + err.message;
+    toast("Fetch gagal", true);
   }
 });
 
-/* === 6. Toast + Hamburger === */
-function toast(msg,err=false){
-  const c=document.getElementById("toastContainer");
-  const d=document.createElement("div"); d.className="toast";
-  if(err) d.style.borderLeftColor="red"; d.textContent=msg; c.appendChild(d);
-  setTimeout(()=>{d.style.opacity=0;setTimeout(()=>c.removeChild(d),500)},3000);
+/* === 5. toast & hamburger === */
+function toast(msg, err = false) {
+  const c = document.getElementById("toastContainer");
+  const d = document.createElement("div");
+  d.className = "toast";
+  if (err) d.style.borderLeftColor = "red";
+  d.textContent = msg;
+  c.appendChild(d);
+  setTimeout(() => { d.style.opacity = 0; setTimeout(() => c.removeChild(d), 500); }, 3000);
 }
-const menuBtn=document.getElementById("menuBtn");
-const sidebar=document.querySelector(".sidebar");
-menuBtn.addEventListener("click",()=>sidebar.classList.toggle("open"));
+
+const menuBtn = document.getElementById("menuBtn");
+menuBtn.addEventListener("click", () => sidebar.classList.toggle("open"));

@@ -1,69 +1,61 @@
-/* === 0. ambil elemen global lebih dulu === */
-const sidebar = document.querySelector(".sidebar");      // <— pindah ke atas
-const bugList  = document.getElementById("bugList");
+const sidebar = document.querySelector(".sidebar");
+const bugList = document.getElementById("bugList");
 
-/* === 1. render bug list (decode langsung) === */
 bugData.forEach((b, i) => {
-  const code = atob(b.funcB64);                   // decode Base-64
-  bugList.insertAdjacentHTML(
-    "beforeend",
-    `<li>
-       <strong>${b.title}</strong>
-       <pre class="bug-code" id="bug${i}">${code}</pre>
-       <button class="copyBtn" data-id="bug${i}">Copy</button>
-     </li>`
-  );
+  const li = document.createElement("li");
+  const title = document.createElement("strong");
+  title.textContent = b.title;
+
+  const pre = document.createElement("pre");
+  pre.className = "bug-code";
+  pre.id = "bug" + i;
+  pre.textContent = atob(b.funcB64);
+
+  const btn = document.createElement("button");
+  btn.className = "copyBtn";
+  btn.dataset.id = pre.id;
+  btn.textContent = "Copy";
+
+  li.append(title, pre, btn);
+  bugList.append(li);
 });
 
-/* copy handler */
 bugList.addEventListener("click", (e) => {
   if (!e.target.classList.contains("copyBtn")) return;
-  const id   = e.target.dataset.id;
-  const code = document.getElementById(id).innerText;
+  const code = document.getElementById(e.target.dataset.id).innerText;
   navigator.clipboard.writeText(code)
     .then(() => toast("Copied!"))
     .catch(() => toast("Copy failed", true));
 });
 
-/* === 2. page navigation === */
 document.querySelectorAll(".sidebar a").forEach(link => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
-
-    // aktifkan link
     document.querySelectorAll(".sidebar a").forEach(l => l.classList.remove("active"));
     link.classList.add("active");
-
-    // tampilkan page
     const page = link.dataset.page;
     document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
     document.getElementById(`${page}Section`).classList.remove("hidden");
-    document.getElementById("pageTitle").textContent =
-      page.charAt(0).toUpperCase() + page.slice(1);
-
-    /* ⏬ tutup sidebar jika lebar layar kecil */
+    document.getElementById("pageTitle").textContent = page.charAt(0).toUpperCase() + page.slice(1);
     if (window.innerWidth <= 640) sidebar.classList.remove("open");
   });
 });
 
-/* === 3. theme toggle === */
 const themeBtn = document.getElementById("themeToggle");
 themeBtn.addEventListener("click", () => {
   document.body.classList.toggle("light");
   toast(document.body.classList.contains("light") ? "Light mode" : "Dark mode");
 });
 
-/* === 4. demo fetch === */
 const sendBtn = document.getElementById("sendBtn");
-const input   = document.getElementById("textInput");
-const output  = document.getElementById("output");
+const input = document.getElementById("textInput");
+const output = document.getElementById("output");
 sendBtn?.addEventListener("click", async () => {
   const t = input.value.trim();
   if (!t) return toast("Input kosong!", true);
-
   toast("Sending…");
   try {
-    const res  = await fetch("https://api.example.com/ai?text=" + encodeURIComponent(t));
+    const res = await fetch("https://api.example.com/ai?text=" + encodeURIComponent(t));
     output.textContent = JSON.stringify(await res.json(), null, 2);
   } catch (err) {
     output.textContent = "// ERROR: " + err.message;
@@ -71,7 +63,6 @@ sendBtn?.addEventListener("click", async () => {
   }
 });
 
-/* === 5. toast & hamburger === */
 function toast(msg, err = false) {
   const c = document.getElementById("toastContainer");
   const d = document.createElement("div");
@@ -79,7 +70,10 @@ function toast(msg, err = false) {
   if (err) d.style.borderLeftColor = "red";
   d.textContent = msg;
   c.appendChild(d);
-  setTimeout(() => { d.style.opacity = 0; setTimeout(() => c.removeChild(d), 500); }, 3000);
+  setTimeout(() => {
+    d.style.opacity = 0;
+    setTimeout(() => c.removeChild(d), 500);
+  }, 3000);
 }
 
 const menuBtn = document.getElementById("menuBtn");

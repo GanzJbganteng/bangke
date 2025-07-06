@@ -2,14 +2,24 @@
 /* === 1. Render Bug List (kode disembunyikan) === */
 const bugList = document.getElementById("bugList");
 bugData.forEach((b, i) => {
+  const code = atob(b.funcB64); // ← decode langsung
   bugList.insertAdjacentHTML(
     "beforeend",
     `<li>
        <strong>${b.title}</strong>
-       <pre class="bug-code">// hidden • click Copy</pre>
-       <button class="copyBtn" data-i="${i}">Copy</button>
+       <pre class="bug-code" id="bug${i}">${code}</pre>
+       <button class="copyBtn" data-id="bug${i}">Copy</button>
      </li>`
   );
+});
+
+bugList.addEventListener("click", (e) => {
+  if (!e.target.classList.contains("copyBtn")) return;
+  const id = e.target.dataset.id;
+  const code = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(code)
+    .then(() => toast("Copied!"))
+    .catch(() => toast("Copy failed", true));
 });
 
 /* === 2. Copy Handler (decode Base-64) === */
